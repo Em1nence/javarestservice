@@ -3,6 +3,8 @@ package repository.impl;
 import db.ConnectionManager;
 import model.Course;
 import model.Instructor;
+import model.Student;
+import repository.mapper.CourseResultSetMapperImpl;
 
 import java.io.IOException;
 import java.sql.*;
@@ -11,18 +13,17 @@ import java.util.List;
 
 public class CourseRepository {
     private final ConnectionManager connectionManager;
-
+    private final CourseResultSetMapperImpl crsm;
 
     public CourseRepository(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
+        this.crsm = new CourseResultSetMapperImpl();
     }
-    private Connection getConnection(){
+    private Connection getConnection() {
         try {
             return connectionManager.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException("Failed to get a database connection", e);
         }
     }
 
@@ -37,12 +38,12 @@ public class CourseRepository {
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        course = mapResultSetToCourse(resultSet);
+                        course = crsm.mapResultSetToCourse(resultSet);
                     }
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error fetching course by ID", e);
         }
 
         return course;
@@ -50,37 +51,38 @@ public class CourseRepository {
 
     public List<Course> getAll() {
         List<Course> courses = new ArrayList<>();
-        Connection connection = getConnection();
-        try {
+        try (Connection connection = getConnection()) {
             String sql = "SELECT c.*, i.* FROM Course c LEFT JOIN Instructor i ON c.instructor_id = i.id";
+
             try (PreparedStatement statement = connection.prepareStatement(sql);
                  ResultSet resultSet = statement.executeQuery()) {
 
                 while (resultSet.next()) {
-                    Course course = mapResultSetToCourse(resultSet);
+                    Course course = crsm.mapResultSetToCourse(resultSet);
                     courses.add(course);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error fetching all courses", e);
         }
 
         return courses;
     }
     public void add(Course course) {
-        Connection connection = getConnection();
-        try {
+
+        if (!instructorExists(course.getInstructor().getId())) {
+            throw new IllegalArgumentException("Instructor with the specified ID does not exist.");
+        }
+
+        try (Connection connection = getConnection()) {
             String sql = "INSERT INTO Course (title, description, instructor_id) VALUES (?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, course.getTitle());
                 statement.setString(2, course.getDescription());
-
-                // В инструкторе есть поле id, которое будет привязано к instructor_id в таблице Course
                 statement.setInt(3, course.getInstructor().getId());
 
                 statement.executeUpdate();
 
-                // Получение сгенерированного ключа (если необходимо)
                 try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int generatedId = generatedKeys.getInt(1);
@@ -88,14 +90,16 @@ public class CourseRepository {
                     }
                 }
             }
+            Instructor instructor = course.getInstructor();
+            instructor.getCourses().add(course);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error adding a course", e);
         }
     }
 
+
     public void update(Course course) {
-        Connection connection = getConnection();
-        try {
+        try (Connection connection = getConnection()) {
             String sql = "UPDATE Course SET title = ?, description = ?, instructor_id = ? WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, course.getTitle());
@@ -106,37 +110,92 @@ public class CourseRepository {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error updating a course", e);
         }
     }
 
     public void delete(int id) {
-        Connection connection = getConnection();
-        try {
+        try (Connection connection = getConnection()) {
+            String deleteStudentCourseSql = "DELETE FROM studentcourse WHERE course_id = ?";
+            try (PreparedStatement deleteStudentCourseStatement = connection.prepareStatement(deleteStudentCourseSql)) {
+                deleteStudentCourseStatement.setInt(1, id);
+                deleteStudentCourseStatement.executeUpdate();
+            }
             String sql = "DELETE FROM Course WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, id);
 
                 statement.executeUpdate();
             }
+            Course deletedCourse = getById(id);
+            if (deletedCourse != null) {
+                Instructor instructor = deletedCourse.getInstructor();
+                instructor.getCourses().remove(deletedCourse);
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error deleting a course", e);
         }
     }
 
-    private Course mapResultSetToCourse(ResultSet resultSet) throws SQLException {
-        Course course = new Course();
-        course.setId(resultSet.getInt("c.id"));
-        course.setTitle(resultSet.getString("c.title"));
-        course.setDescription(resultSet.getString("c.description"));
 
-        Instructor instructor = new Instructor();
-        instructor.setId(resultSet.getInt("i.id"));
-        instructor.setName(resultSet.getString("i.name"));
+    public void enrollStudentInCourse(int courseId, int studentId) {
+        try (Connection connection = getConnection()) {
+            String sql = "INSERT INTO studentcourse (course_id, student_id) VALUES (?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, courseId);
+                statement.setInt(2, studentId);
+                statement.executeUpdate();
 
-        course.setInstructor(instructor);
+                // Обновление коллекции внутри объекта Course
 
-        return course;
+                Course course = getById(courseId);
+                StudentRepository studentRepository = new StudentRepository(connectionManager);
+                Student student = studentRepository.getById(studentId);
+
+                if (course != null && student != null) {
+                    course.getStudents().add(student);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error enrolling student in course", e);
+        }
     }
+
+    public void removeStudentFromCourse(int courseId, int studentId) {
+        try (Connection connection = getConnection()) {
+            String sql = "DELETE FROM studentcourse WHERE course_id = ? AND student_id = ?";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, courseId);
+                statement.setInt(2, studentId);
+                statement.executeUpdate();
+
+                // Обновление коллекции внутри объекта Course
+                Course course = getById(courseId);
+                StudentRepository studentRepository = new StudentRepository(connectionManager);
+                Student student = studentRepository.getById(studentId);
+
+                if (course != null && student != null) {
+                    course.getStudents().remove(student);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error removing student from course", e);
+        }
+    }
+    private boolean instructorExists(int instructorId) {
+        try (Connection connection = getConnection()) {
+            String sql = "SELECT id FROM Instructor WHERE id = ?";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, instructorId);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next();
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking instructor existence", e);
+        }
+    }
+
+
 
 }

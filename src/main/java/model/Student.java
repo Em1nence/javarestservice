@@ -1,9 +1,25 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Student {
     private int id;
     private String name;
     private String email;
+    private List<Course> courses;
+
+    public Student() {
+        this.courses = new ArrayList<>();
+    }
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
 
     public int getId() {
         return id;
@@ -28,4 +44,6 @@ public class Student {
     public void setEmail(String email) {
         this.email = email;
     }
+
+
 }

@@ -1,0 +1,6 @@
+model\Course.class
+model\Student.class
+com\example\astonrestservice\HelloServlet.class
+repository\impl\CourseRepository.class
+model\Instructor.class
+db\ConnectionManager.class

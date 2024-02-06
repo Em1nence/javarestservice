@@ -26,8 +26,6 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void addCourse(Course course) {
         courseRepository.add(course);
-        Instructor instructor = course.getInstructor();
-        instructor.getCourses().add(course);
     }
 
     @Override
@@ -38,11 +36,6 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void deleteCourse(int id) {
         courseRepository.delete(id);
-        Course deletedCourse = getCourseById(id);
-        if (deletedCourse != null) {
-            Instructor instructor = deletedCourse.getInstructor();
-            instructor.getCourses().remove(deletedCourse);
-        }
     }
 
     @Override

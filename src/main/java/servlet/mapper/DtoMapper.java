@@ -1,6 +1,6 @@
 package servlet.mapper;
 
-public interface DtoMapper<E, D> {
-    D toDto(E entity);
-    E toEntity(D dto);
+public interface DtoMapper<E, I, O> {
+    E toEntity(I incomingDto);
+    O toOutgoingDto(E entity);
 }

@@ -31,10 +31,10 @@ public class StudentServiceTest {
 
     @Test
     void testGetAllStudents() {
-        when(studentRepository.getAll()).thenReturn(new ArrayList<>());
+        when(studentRepository.getAllStudents()).thenReturn(new ArrayList<>());
         List<Student> students = studentService.getAllStudents();
         assertNotNull(students);
-        verify(studentRepository, times(1)).getAll();
+        verify(studentRepository, times(1)).getAllStudents();
     }
 
     @Test
@@ -42,11 +42,11 @@ public class StudentServiceTest {
         int studentId = 1;
         Student expectedStudent = new Student();
         expectedStudent.setId(studentId);
-        when(studentRepository.getById(studentId)).thenReturn(expectedStudent);
+        when(studentRepository.getStudentById(studentId)).thenReturn(expectedStudent);
         Student actualStudent = studentService.getStudentById(studentId);
         assertNotNull(actualStudent);
         assertEquals(expectedStudent, actualStudent);
-        verify(studentRepository, times(1)).getById(studentId);
+        verify(studentRepository, times(1)).getStudentById(studentId);
     }
 
     @Test
@@ -54,17 +54,17 @@ public class StudentServiceTest {
         Student newStudent = new Student();
         newStudent.setName("New Student");
         newStudent.setEmail("new.student@example.com");
-        doNothing().when(studentRepository).add(newStudent);
+        doNothing().when(studentRepository).addStudent(newStudent);
         studentService.addStudent(newStudent);
-        verify(studentRepository, times(1)).add(newStudent);
+        verify(studentRepository, times(1)).addStudent(newStudent);
     }
 
     @Test
     void testDeleteStudent() {
         int studentId = 1;
-        doNothing().when(studentRepository).delete(studentId);
+        doNothing().when(studentRepository).deleteStudent(studentId);
         studentService.deleteStudent(studentId);
-        verify(studentRepository, times(1)).delete(studentId);
+        verify(studentRepository, times(1)).deleteStudent(studentId);
     }
 
 

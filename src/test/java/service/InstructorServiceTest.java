@@ -31,10 +31,10 @@ public class InstructorServiceTest {
 
     @Test
     void testGetAllInstructors() {
-        when(instructorRepository.getAll()).thenReturn(new ArrayList<>());
+        when(instructorRepository.getAllInstructors()).thenReturn(new ArrayList<>());
         List<Instructor> instructors = instructorService.getAllInstructors();
         assertNotNull(instructors);
-        verify(instructorRepository, times(1)).getAll();
+        verify(instructorRepository, times(1)).getAllInstructors();
     }
 
     @Test
@@ -42,11 +42,11 @@ public class InstructorServiceTest {
         int instructorId = 1;
         Instructor expectedInstructor = new Instructor();
         expectedInstructor.setId(instructorId);
-        when(instructorRepository.getById(instructorId)).thenReturn(expectedInstructor);
+        when(instructorRepository.getInstructorById(instructorId)).thenReturn(expectedInstructor);
         Instructor actualInstructor = instructorService.getInstructorById(instructorId);
         assertNotNull(actualInstructor);
         assertEquals(expectedInstructor, actualInstructor);
-        verify(instructorRepository, times(1)).getById(instructorId);
+        verify(instructorRepository, times(1)).getInstructorById(instructorId);
     }
 
     @Test
@@ -54,17 +54,17 @@ public class InstructorServiceTest {
         Instructor newInstructor = new Instructor();
         newInstructor.setName("New Instructor");
         newInstructor.setEmail("new.instructor@example.com");
-        doNothing().when(instructorRepository).add(newInstructor);
+        doNothing().when(instructorRepository).addInstructor(newInstructor);
         instructorService.addInstructor(newInstructor);
-        verify(instructorRepository, times(1)).add(newInstructor);
+        verify(instructorRepository, times(1)).addInstructor(newInstructor);
     }
 
     @Test
     void testDeleteInstructor() {
         int instructorId = 1;
-        doNothing().when(instructorRepository).delete(instructorId);
+        doNothing().when(instructorRepository).deleteInstructor(instructorId);
         instructorService.deleteInstructor(instructorId);
-        verify(instructorRepository, times(1)).delete(instructorId);
+        verify(instructorRepository, times(1)).deleteInstructor(instructorId);
     }
 
 }

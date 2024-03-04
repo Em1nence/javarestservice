@@ -14,21 +14,21 @@ public class InstructorServiceImpl implements InstructorService {
 
     @Override
     public Instructor getInstructorById(int id) {
-        return instructorRepository.getById(id);
+        return instructorRepository.getInstructorById(id);
     }
 
     @Override
     public List<Instructor> getAllInstructors() {
-        return instructorRepository.getAll();
+        return instructorRepository.getAllInstructors();
     }
 
     @Override
     public void addInstructor(Instructor instructor) {
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
     }
 
     @Override
     public void deleteInstructor(int id) {
-        instructorRepository.delete(id);
+        instructorRepository.deleteInstructor(id);
     }
 }

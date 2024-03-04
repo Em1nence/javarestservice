@@ -1,7 +1,6 @@
 package service;
 
 import model.Course;
-import model.Instructor;
 import repository.impl.CourseRepository;
 
 import java.util.List;
@@ -15,27 +14,27 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Course getCourseById(int id) {
-        return courseRepository.getById(id);
+        return courseRepository.getCourseById(id);
     }
 
     @Override
     public List<Course> getAllCourses() {
-        return courseRepository.getAll();
+        return courseRepository.getAllCourses();
     }
 
     @Override
     public void addCourse(Course course) {
-        courseRepository.add(course);
+        courseRepository.addCourse(course);
     }
 
     @Override
     public void updateCourse(Course course) {
-        courseRepository.update(course);
+        courseRepository.updateCourse(course);
     }
 
     @Override
     public void deleteCourse(int id) {
-        courseRepository.delete(id);
+        courseRepository.deleteCourse(id);
     }
 
     @Override

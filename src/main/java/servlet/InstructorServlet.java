@@ -19,10 +19,12 @@ import java.util.stream.Collectors;
 
 @WebServlet("/instructor/*")
 public class InstructorServlet extends HttpServlet {
-    private final InstructorServiceImpl instructorService;
+    private final InstructorService instructorService;
+    private final InstructorMapper instructorMapper;
 
-    public InstructorServlet(InstructorServiceImpl instructorService) {
+    public InstructorServlet(InstructorServiceImpl instructorService, InstructorMapper instructorMapper) {
         this.instructorService = instructorService;
+        this.instructorMapper = instructorMapper;
     }
 
     @Override
@@ -31,7 +33,7 @@ public class InstructorServlet extends HttpServlet {
         if (pathInfo == null || pathInfo.equals("/")) {
             // Получение всех инструкторов
             List<InstructorOutgoingDTO> instructors = instructorService.getAllInstructors().stream()
-                    .map(instructor -> new InstructorMapper().toOutgoingDto(instructor))
+                    .map(instructor -> instructorMapper.toOutgoingDto(instructor))
                     .collect(Collectors.toList());
 
             // Отправка данных в формате JSON
@@ -41,7 +43,7 @@ public class InstructorServlet extends HttpServlet {
         } else {
             // Получение конкретного инструктора
             int instructorId = Integer.parseInt(pathInfo.substring(1)); // Убираем первый символ '/'
-            InstructorOutgoingDTO instructor = new InstructorMapper().toOutgoingDto(instructorService.getInstructorById(instructorId));
+            InstructorOutgoingDTO instructor = instructorMapper.toOutgoingDto(instructorService.getInstructorById(instructorId));
 
             // Отправка данных в формате JSON
             response.setContentType("application/json");
@@ -54,7 +56,7 @@ public class InstructorServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Создание нового инструктора
         InstructorIncomingDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), InstructorIncomingDTO.class);
-        Instructor instructor = new InstructorMapper().toEntity(incomingDTO);
+        Instructor instructor = instructorMapper.toEntity(incomingDTO);
         instructorService.addInstructor(instructor);
 
         response.setStatus(HttpServletResponse.SC_CREATED);

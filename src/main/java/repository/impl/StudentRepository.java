@@ -2,6 +2,7 @@ package repository.impl;
 
 import db.ConnectionManager;
 import model.Student;
+import repository.mapper.StudentResultSetMapper;
 import repository.mapper.StudentResultSetMapperImpl;
 
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public class StudentRepository {
     private final ConnectionManager connectionManager;
-    private final StudentResultSetMapperImpl srsm;
+    private final StudentResultSetMapper srsm;
 
     public StudentRepository(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -26,7 +27,7 @@ public class StudentRepository {
         }
     }
 
-    public void add(Student student) {
+    public void addStudent(Student student) {
         try (Connection connection = getConnection()) {
             String sql = "INSERT INTO Student (name, email) VALUES (?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -48,7 +49,7 @@ public class StudentRepository {
     }
 
     // Получение студента по ID
-    public Student getById(int id) {
+    public Student getStudentById(int id) {
         Student student = null;
         try (Connection connection = getConnection()) {
             String sql = "SELECT * FROM Student WHERE id = ?";
@@ -68,7 +69,7 @@ public class StudentRepository {
     }
 
     // Получение всех студентов
-    public List<Student> getAll() {
+    public List<Student> getAllStudents() {
         List<Student> students = new ArrayList<>();
         try (Connection connection = getConnection()) {
             String sql = "SELECT * FROM Student";
@@ -86,7 +87,7 @@ public class StudentRepository {
         return students;
     }
 
-    public void delete(int id) {
+    public void deleteStudent(int id) {
         try (Connection connection = getConnection()) {
             String deleteStudentCourseSql = "DELETE FROM studentcourse WHERE student_id = ?";
             try (PreparedStatement deleteStudentCourseStatement = connection.prepareStatement(deleteStudentCourseSql)) {

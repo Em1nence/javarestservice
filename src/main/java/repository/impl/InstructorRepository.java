@@ -2,6 +2,7 @@ package repository.impl;
 
 import db.ConnectionManager;
 import model.Instructor;
+import repository.mapper.InstructorResultSetMapper;
 import repository.mapper.InstructorResultSetMapperImpl;
 
 import java.io.IOException;
@@ -11,11 +12,7 @@ import java.util.List;
 
 public class InstructorRepository {
     private final ConnectionManager connectionManager;
-    private final InstructorResultSetMapperImpl irsm;
-
-
-
-
+    private final InstructorResultSetMapper irsm;
     public InstructorRepository(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
         this.irsm = new InstructorResultSetMapperImpl();
@@ -28,10 +25,10 @@ public class InstructorRepository {
             throw new RuntimeException("Failed to get a database connection", e);
         }
     }
-    public List<Instructor> getAll() {
+
+    public List<Instructor> getAllInstructors() {
         List<Instructor> instructors = new ArrayList<>();
-        Connection connection = getConnection();
-        try {
+        try(Connection connection = getConnection()) {
             String sql = "SELECT * FROM Instructor";
             try (PreparedStatement statement = connection.prepareStatement(sql);
                  ResultSet resultSet = statement.executeQuery()) {
@@ -47,10 +44,10 @@ public class InstructorRepository {
         return instructors;
     }
 
-    public Instructor getById(int id) {
+    public Instructor getInstructorById(int id) {
         Instructor instructor = null;
-        Connection connection = getConnection();
-        try {
+
+        try(Connection connection = getConnection()) {
             String sql = "SELECT * FROM Instructor WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, id);
@@ -67,9 +64,7 @@ public class InstructorRepository {
         return instructor;
     }
 
-
-
-    public void add(Instructor instructor) {
+    public void addInstructor(Instructor instructor) {
         try (Connection connection = getConnection()) {
             String sql = "INSERT INTO Instructor (name, email) VALUES (?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -90,9 +85,10 @@ public class InstructorRepository {
             throw new RuntimeException("Error adding an instructor", e);
         }
     }
-    public void update(Instructor instructor) {
-        Connection connection = getConnection();
-        try {
+
+    public void updateInstructor(Instructor instructor) {
+
+        try(Connection connection = getConnection()){
             String sql = "UPDATE Instructor SET name = ?, email = ? WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, instructor.getName());
@@ -106,9 +102,8 @@ public class InstructorRepository {
         }
     }
 
-    public void delete(int id) {
-        Connection connection = getConnection();
-        try {
+    public void deleteInstructor(int id) {
+        try(Connection connection = getConnection()) {
             String sql = "DELETE FROM Instructor WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, id);
@@ -119,7 +114,4 @@ public class InstructorRepository {
             e.printStackTrace();
         }
     }
-
-
-
 }

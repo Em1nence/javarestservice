@@ -4,6 +4,7 @@ import db.ConnectionManager;
 import model.Course;
 import model.Instructor;
 import model.Student;
+import repository.mapper.CourseResultSetMapper;
 import repository.mapper.CourseResultSetMapperImpl;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class CourseRepository {
     private final ConnectionManager connectionManager;
-    private final CourseResultSetMapperImpl crsm;
+    private final CourseResultSetMapper crsm;
 
     public CourseRepository(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -27,10 +28,9 @@ public class CourseRepository {
         }
     }
 
-    public Course getById(int id) {
+    public Course getCourseById(int id) {
         Course course = null;
-        Connection connection = getConnection();
-        try {
+        try(Connection connection = getConnection()) {
             String sql = "SELECT c.*, i.* FROM Course c LEFT JOIN Instructor i ON c.instructor_id = i.id WHERE c.id = ?";
 
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -49,7 +49,7 @@ public class CourseRepository {
         return course;
     }
 
-    public List<Course> getAll() {
+    public List<Course> getAllCourses() {
         List<Course> courses = new ArrayList<>();
         try (Connection connection = getConnection()) {
             String sql = "SELECT c.*, i.* FROM Course c LEFT JOIN Instructor i ON c.instructor_id = i.id";
@@ -68,7 +68,7 @@ public class CourseRepository {
 
         return courses;
     }
-    public void add(Course course) {
+    public void addCourse(Course course) {
 
         if (!instructorExists(course.getInstructor().getId())) {
             throw new IllegalArgumentException("Instructor with the specified ID does not exist.");
@@ -98,7 +98,7 @@ public class CourseRepository {
     }
 
 
-    public void update(Course course) {
+    public void updateCourse(Course course) {
         try (Connection connection = getConnection()) {
             String sql = "UPDATE Course SET title = ?, description = ?, instructor_id = ? WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -114,7 +114,7 @@ public class CourseRepository {
         }
     }
 
-    public void delete(int id) {
+    public void deleteCourse(int id) {
         try (Connection connection = getConnection()) {
             String deleteStudentCourseSql = "DELETE FROM studentcourse WHERE course_id = ?";
             try (PreparedStatement deleteStudentCourseStatement = connection.prepareStatement(deleteStudentCourseSql)) {
@@ -127,7 +127,7 @@ public class CourseRepository {
 
                 statement.executeUpdate();
             }
-            Course deletedCourse = getById(id);
+            Course deletedCourse = getCourseById(id);
             if (deletedCourse != null) {
                 Instructor instructor = deletedCourse.getInstructor();
                 instructor.getCourses().remove(deletedCourse);
@@ -148,9 +148,9 @@ public class CourseRepository {
 
                 // Обновление коллекции внутри объекта Course
 
-                Course course = getById(courseId);
+                Course course = getCourseById(courseId);
                 StudentRepository studentRepository = new StudentRepository(connectionManager);
-                Student student = studentRepository.getById(studentId);
+                Student student = studentRepository.getStudentById(studentId);
 
                 if (course != null && student != null) {
                     course.getStudents().add(student);
@@ -170,9 +170,9 @@ public class CourseRepository {
                 statement.executeUpdate();
 
                 // Обновление коллекции внутри объекта Course
-                Course course = getById(courseId);
+                Course course = getCourseById(courseId);
                 StudentRepository studentRepository = new StudentRepository(connectionManager);
-                Student student = studentRepository.getById(studentId);
+                Student student = studentRepository.getStudentById(studentId);
 
                 if (course != null && student != null) {
                     course.getStudents().remove(student);

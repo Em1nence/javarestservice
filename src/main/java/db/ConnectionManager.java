@@ -7,16 +7,17 @@ import java.sql.*;
 import java.util.Properties;
 
 public class ConnectionManager {
-    private String url;
-    private String username;
-    private String password;
+    private final String url;
+    private final String username;
+    private final String password;
 
-    public ConnectionManager(String url, String username, String password){
+    public ConnectionManager(String url, String username, String password) {
         this.url = url;
         this.username = username;
         this.password = password;
 
     }
+
     public Connection getConnection() throws SQLException, IOException {
         Properties properties = new Properties();
 
@@ -25,6 +26,16 @@ public class ConnectionManager {
                 throw new FileNotFoundException("Property file 'sql.properties' not found in the classpath");
             }
             properties.load(inputStream);
+        }
+
+        if (url != null && !url.isEmpty()) {
+            properties.setProperty("database.url", url);
+        }
+        if (username != null && !username.isEmpty()) {
+            properties.setProperty("database.login", username);
+        }
+        if (password != null && !password.isEmpty()) {
+            properties.setProperty("database.pass", password);
         }
 
         return DriverManager.getConnection(

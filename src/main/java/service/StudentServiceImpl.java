@@ -14,21 +14,21 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student getStudentById(int id) {
-        return studentRepository.getById(id);
+        return studentRepository.getStudentById(id);
     }
 
     @Override
     public List<Student> getAllStudents() {
-        return studentRepository.getAll();
+        return studentRepository.getAllStudents();
     }
 
     @Override
     public void addStudent(Student student) {
-        studentRepository.add(student);
+        studentRepository.addStudent(student);
     }
 
     @Override
     public void deleteStudent(int id) {
-        studentRepository.delete(id);
+        studentRepository.deleteStudent(id);
     }
 }

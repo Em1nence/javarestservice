@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Course;
+import service.CourseService;
 import service.CourseServiceImpl;
 import servlet.dto.CourseIncomingDTO;
 import servlet.dto.CourseOutgoingDTO;
@@ -17,8 +18,8 @@ import java.util.stream.Collectors;
 
 @WebServlet("/course/*")
 public class CourseServlet extends HttpServlet {
-    private final CourseServiceImpl courseService;
-    private final CourseMapper courseMapper; // Добавили поле для CourseMapper
+    private final CourseService courseService;
+    private final CourseMapper courseMapper;
 
     public CourseServlet(CourseServiceImpl courseService, CourseMapper courseMapper) {
         this.courseService = courseService;

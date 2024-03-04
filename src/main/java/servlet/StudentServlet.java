@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Student;
+import service.StudentService;
 import service.StudentServiceImpl;
 import servlet.dto.StudentIncomingDTO;
 import servlet.mapper.StudentMapper;
@@ -14,17 +15,19 @@ import java.io.IOException;
 
 @WebServlet("/student/*")
 public class StudentServlet extends HttpServlet {
-    private final StudentServiceImpl studentService;
+    private final StudentService studentService;
+    private final StudentMapper studentMapper;
 
-    public StudentServlet(StudentServiceImpl studentService) {
+    public StudentServlet(StudentServiceImpl studentService, StudentMapper studentMapper) {
         this.studentService = studentService;
+        this.studentMapper = studentMapper;
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // Создание нового студента
         StudentIncomingDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), StudentIncomingDTO.class);
-        Student student = new StudentMapper().toEntity(incomingDTO);
+        Student student = studentMapper.toEntity(incomingDTO);
         studentService.addStudent(student);
 
         response.setStatus(HttpServletResponse.SC_CREATED);

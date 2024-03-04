@@ -54,9 +54,9 @@ public class InstructorRepositoryTest {
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
 
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
-        Instructor retrievedInstructor = instructorRepository.getById(instructor.getId());
+        Instructor retrievedInstructor = instructorRepository.getInstructorById(instructor.getId());
 
         assertNotNull(retrievedInstructor);
         assertEquals(instructor.getName(), retrievedInstructor.getName());
@@ -71,21 +71,21 @@ public class InstructorRepositoryTest {
             throw new RuntimeException(e);
         }
 
-        List<Instructor> instructors = instructorRepository.getAll();
+        List<Instructor> instructors = instructorRepository.getAllInstructors();
 
         assertEquals(0, instructors.size());
 
         Instructor instructor1 = new Instructor();
         instructor1.setName("Аскар");
         instructor1.setEmail("askar@example.com");
-        instructorRepository.add(instructor1);
+        instructorRepository.addInstructor(instructor1);
 
         Instructor instructor2 = new Instructor();
         instructor2.setName("Тимур");
         instructor2.setEmail("timur@example.com");
-        instructorRepository.add(instructor2);
+        instructorRepository.addInstructor(instructor2);
 
-        instructors = instructorRepository.getAll();
+        instructors = instructorRepository.getAllInstructors();
 
         assertNotNull(instructors);
         assertEquals(2, instructors.size());
@@ -96,13 +96,13 @@ public class InstructorRepositoryTest {
         Instructor instructor = new Instructor();
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
         instructor.setName("Обновленное имя");
         instructor.setEmail("updated.email@example.com");
-        instructorRepository.update(instructor);
+        instructorRepository.updateInstructor(instructor);
 
-        Instructor updatedInstructor = instructorRepository.getById(instructor.getId());
+        Instructor updatedInstructor = instructorRepository.getInstructorById(instructor.getId());
 
         assertNotNull(updatedInstructor);
         assertEquals("Обновленное имя", updatedInstructor.getName());
@@ -114,11 +114,11 @@ public class InstructorRepositoryTest {
         Instructor instructor = new Instructor();
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
-        instructorRepository.delete(instructor.getId());
+        instructorRepository.deleteInstructor(instructor.getId());
 
-        Instructor deletedInstructor = instructorRepository.getById(instructor.getId());
+        Instructor deletedInstructor = instructorRepository.getInstructorById(instructor.getId());
 
         assertNull(deletedInstructor);
     }

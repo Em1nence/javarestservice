@@ -31,7 +31,7 @@ public class CourseServiceTest {
     @Test
     void testGetAllCourses() {
         // Создание мока для метода repository
-        when(courseRepository.getAll()).thenReturn(new ArrayList<>());
+        when(courseRepository.getAllCourses()).thenReturn(new ArrayList<>());
 
         // Вызов метода getAllCourses
         List<Course> courses = courseService.getAllCourses();
@@ -40,7 +40,7 @@ public class CourseServiceTest {
         assertNotNull(courses);
 
         // Проверка, что метод repository был вызван ровно один раз
-        verify(courseRepository, times(1)).getAll();
+        verify(courseRepository, times(1)).getAllCourses();
     }
 
     @Test
@@ -51,25 +51,25 @@ public class CourseServiceTest {
         newCourse.setDescription("Description");
 
         // Задаем поведение для мока repository
-        when(courseRepository.getById(newCourse.getId())).thenReturn(null);
-        doNothing().when(courseRepository).add(newCourse);
+        when(courseRepository.getCourseById(newCourse.getId())).thenReturn(null);
+        doNothing().when(courseRepository).addCourse(newCourse);
 
         // Вызов метода addCourse
         courseService.addCourse(newCourse);
 
         // Проверка, что метод repository был вызван ровно один раз
-        verify(courseRepository, times(1)).add(newCourse);
+        verify(courseRepository, times(1)).addCourse(newCourse);
     }
     @Test
     void testGetCourseById() {
         int courseId = 1;
         Course expectedCourse = new Course();
         expectedCourse.setId(courseId);
-        when(courseRepository.getById(courseId)).thenReturn(expectedCourse);
+        when(courseRepository.getCourseById(courseId)).thenReturn(expectedCourse);
         Course actualCourse = courseService.getCourseById(courseId);
         assertNotNull(actualCourse);
         assertEquals(expectedCourse, actualCourse);
-        verify(courseRepository, times(1)).getById(courseId);
+        verify(courseRepository, times(1)).getCourseById(courseId);
     }
 
     @Test
@@ -78,18 +78,18 @@ public class CourseServiceTest {
         courseToUpdate.setId(1);
         courseToUpdate.setTitle("Updated Course");
         courseToUpdate.setDescription("Updated Description");
-        when(courseRepository.getById(courseToUpdate.getId())).thenReturn(courseToUpdate);
-        doNothing().when(courseRepository).update(courseToUpdate);
+        when(courseRepository.getCourseById(courseToUpdate.getId())).thenReturn(courseToUpdate);
+        doNothing().when(courseRepository).updateCourse(courseToUpdate);
         courseService.updateCourse(courseToUpdate);
-        verify(courseRepository, times(1)).update(courseToUpdate);
+        verify(courseRepository, times(1)).updateCourse(courseToUpdate);
     }
 
     @Test
     void testDeleteCourse() {
         int courseId = 1;
-        doNothing().when(courseRepository).delete(courseId);
+        doNothing().when(courseRepository).deleteCourse(courseId);
         courseService.deleteCourse(courseId);
-        verify(courseRepository, times(1)).delete(courseId);
+        verify(courseRepository, times(1)).deleteCourse(courseId);
     }
 
     @Test

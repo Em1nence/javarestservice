@@ -57,18 +57,18 @@ public class CourseRepositoryTest {
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
         InstructorRepository instructorRepository = new InstructorRepository(connectionManager);
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
         Course course = new Course();
         course.setTitle("Java Programming");
         course.setDescription("Learn Java programming");
         course.setInstructor(instructor);
 
-        courseRepository.add(course);
+        courseRepository.addCourse(course);
 
         assertNotNull(course.getId());
 
-        Course retrievedCourse = courseRepository.getById(course.getId());
+        Course retrievedCourse = courseRepository.getCourseById(course.getId());
 
         assertNotNull(retrievedCourse);
         assertEquals(course.getTitle(), retrievedCourse.getTitle());
@@ -86,7 +86,7 @@ public class CourseRepositoryTest {
             throw new RuntimeException(e);
         }
 
-        List<Course> courses = courseRepository.getAll();
+        List<Course> courses = courseRepository.getAllCourses();
 
         assertEquals(0, courses.size());
 
@@ -94,26 +94,26 @@ public class CourseRepositoryTest {
         instructor1.setName("Аскар");
         instructor1.setEmail("john.doe@example.com");
         InstructorRepository instructorRepository = new InstructorRepository(connectionManager);
-        instructorRepository.add(instructor1);
+        instructorRepository.addInstructor(instructor1);
 
         Course course1 = new Course();
         course1.setTitle("Java Programming");
         course1.setDescription("Learn Java programming");
         course1.setInstructor(instructor1);
-        courseRepository.add(course1);
+        courseRepository.addCourse(course1);
 
         Instructor instructor2 = new Instructor();
         instructor2.setName("Алиса");
         instructor2.setEmail("alise@example.com");
-        instructorRepository.add(instructor2);
+        instructorRepository.addInstructor(instructor2);
 
         Course course2 = new Course();
         course2.setTitle("Database Design");
         course2.setDescription("Learn database design");
         course2.setInstructor(instructor2);
-        courseRepository.add(course2);
+        courseRepository.addCourse(course2);
 
-        courses = courseRepository.getAll();
+        courses = courseRepository.getAllCourses();
 
         assertNotNull(courses);
         assertEquals(2, courses.size());
@@ -125,19 +125,19 @@ public class CourseRepositoryTest {
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
         InstructorRepository instructorRepository = new InstructorRepository(connectionManager);
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
         Course course = new Course();
         course.setTitle("Java Programming");
         course.setDescription("Learn Java programming");
         course.setInstructor(instructor);
-        courseRepository.add(course);
+        courseRepository.addCourse(course);
 
         course.setTitle("Updated Title");
         course.setDescription("Updated description");
-        courseRepository.update(course);
+        courseRepository.updateCourse(course);
 
-        Course updatedCourse = courseRepository.getById(course.getId());
+        Course updatedCourse = courseRepository.getCourseById(course.getId());
 
         assertNotNull(updatedCourse);
         assertEquals("Updated Title", updatedCourse.getTitle());
@@ -150,17 +150,17 @@ public class CourseRepositoryTest {
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
         InstructorRepository instructorRepository = new InstructorRepository(connectionManager);
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
         Course course = new Course();
         course.setTitle("Java Programming");
         course.setDescription("Learn Java programming");
         course.setInstructor(instructor);
-        courseRepository.add(course);
+        courseRepository.addCourse(course);
 
-        courseRepository.delete(course.getId());
+        courseRepository.deleteCourse(course.getId());
 
-        Course deletedCourse = courseRepository.getById(course.getId());
+        Course deletedCourse = courseRepository.getCourseById(course.getId());
 
         assertNull(deletedCourse);
     }
@@ -171,19 +171,19 @@ public class CourseRepositoryTest {
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
         InstructorRepository instructorRepository = new InstructorRepository(connectionManager);
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
         Course course = new Course();
         course.setTitle("Java Programming");
         course.setDescription("Learn Java programming");
         course.setInstructor(instructor);
-        courseRepository.add(course);
+        courseRepository.addCourse(course);
 
         Student student = new Student();
         student.setName("Алиса");
         student.setEmail("alice@example.com");
         StudentRepository studentRepository = new StudentRepository(connectionManager);
-        studentRepository.add(student);
+        studentRepository.addStudent(student);
 
         courseRepository.enrollStudentInCourse(course.getId(), student.getId());
 
@@ -201,19 +201,19 @@ public class CourseRepositoryTest {
         instructor.setName("Аскар");
         instructor.setEmail("askar@example.com");
         InstructorRepository instructorRepository = new InstructorRepository(connectionManager);
-        instructorRepository.add(instructor);
+        instructorRepository.addInstructor(instructor);
 
         Course course = new Course();
         course.setTitle("Java Programming");
         course.setDescription("Learn Java programming");
         course.setInstructor(instructor);
-        courseRepository.add(course);
+        courseRepository.addCourse(course);
 
         Student student = new Student();
         student.setName("Алиса");
         student.setEmail("alice@example.com");
         StudentRepository studentRepository = new StudentRepository(connectionManager);
-        studentRepository.add(student);
+        studentRepository.addStudent(student);
 
         courseRepository.enrollStudentInCourse(course.getId(), student.getId());
 

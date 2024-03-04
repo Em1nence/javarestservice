@@ -51,11 +51,11 @@ public class StudentRepositoryTest {
         student.setName("Карл Маркс");
         student.setEmail("red@example.com");
 
-        studentRepository.add(student);
+        studentRepository.addStudent(student);
 
         assertNotNull(student.getId());
 
-        Student retrievedStudent = studentRepository.getById(student.getId());
+        Student retrievedStudent = studentRepository.getStudentById(student.getId());
 
         assertNotNull(retrievedStudent);
         assertEquals(student.getName(), retrievedStudent.getName());
@@ -71,21 +71,21 @@ public class StudentRepositoryTest {
             throw new RuntimeException(e);
         }
 
-        List<Student> students = studentRepository.getAll();
+        List<Student> students = studentRepository.getAllStudents();
 
         assertEquals(0, students.size());
 
         Student student1 = new Student();
         student1.setName("Карл Маркс");
         student1.setEmail("red@example.com");
-        studentRepository.add(student1);
+        studentRepository.addStudent(student1);
 
         Student student2 = new Student();
         student2.setName("Василий Уткин");
         student2.setEmail("ytk@example.com");
-        studentRepository.add(student2);
+        studentRepository.addStudent(student2);
 
-        students = studentRepository.getAll();
+        students = studentRepository.getAllStudents();
 
         assertNotNull(students);
         assertEquals(2, students.size());
@@ -97,11 +97,11 @@ public class StudentRepositoryTest {
         Student student = new Student();
         student.setName("Карл Маркс");
         student.setEmail("red@example.com");
-        studentRepository.add(student);
+        studentRepository.addStudent(student);
 
-        studentRepository.delete(student.getId());
+        studentRepository.deleteStudent(student.getId());
 
-        Student deletedStudent = studentRepository.getById(student.getId());
+        Student deletedStudent = studentRepository.getStudentById(student.getId());
 
         assertNull(deletedStudent);
     }

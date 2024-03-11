@@ -1,16 +1,21 @@
 package servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import db.ConnectionManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Course;
 import model.Instructor;
+import repository.impl.InstructorRepository;
+import service.CourseServiceImpl;
 import service.InstructorService;
 import service.InstructorServiceImpl;
-import servlet.dto.InstructorIncomingDTO;
-import servlet.dto.InstructorOutgoingDTO;
+import servlet.dto.CourseDTO;
+import servlet.dto.InstructorDTO;
+import servlet.mapper.CourseMapper;
 import servlet.mapper.InstructorMapper;
 
 import java.io.IOException;
@@ -22,9 +27,13 @@ public class InstructorServlet extends HttpServlet {
     private final InstructorService instructorService;
     private final InstructorMapper instructorMapper;
 
-    public InstructorServlet(InstructorServiceImpl instructorService, InstructorMapper instructorMapper) {
+    public InstructorServlet(InstructorMapper instructorMapper, InstructorServiceImpl instructorService) {
         this.instructorService = instructorService;
         this.instructorMapper = instructorMapper;
+    }
+    public InstructorServlet(InstructorMapper instructorMapper){
+        this.instructorMapper = instructorMapper;
+        this.instructorService = new InstructorServiceImpl();
     }
 
     @Override
@@ -32,8 +41,8 @@ public class InstructorServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             // Получение всех инструкторов
-            List<InstructorOutgoingDTO> instructors = instructorService.getAllInstructors().stream()
-                    .map(instructor -> instructorMapper.toOutgoingDto(instructor))
+            List<InstructorDTO> instructors = instructorService.getAllInstructors().stream()
+                    .map(instructor -> instructorMapper.toDto(instructor))
                     .collect(Collectors.toList());
 
             // Отправка данных в формате JSON
@@ -43,7 +52,7 @@ public class InstructorServlet extends HttpServlet {
         } else {
             // Получение конкретного инструктора
             int instructorId = Integer.parseInt(pathInfo.substring(1)); // Убираем первый символ '/'
-            InstructorOutgoingDTO instructor = instructorMapper.toOutgoingDto(instructorService.getInstructorById(instructorId));
+            InstructorDTO instructor = instructorMapper.toDto(instructorService.getInstructorById(instructorId));
 
             // Отправка данных в формате JSON
             response.setContentType("application/json");
@@ -55,11 +64,28 @@ public class InstructorServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Создание нового инструктора
-        InstructorIncomingDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), InstructorIncomingDTO.class);
+        InstructorDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), InstructorDTO.class);
         Instructor instructor = instructorMapper.toEntity(incomingDTO);
         instructorService.addInstructor(instructor);
 
         response.setStatus(HttpServletResponse.SC_CREATED);
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int instructorId = Integer.parseInt(request.getPathInfo().substring(1));
+        Instructor existingInstructor = instructorService.getInstructorById(instructorId);
+
+        if (existingInstructor != null) {
+            InstructorDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), InstructorDTO.class);
+            Instructor updatedInstructor = instructorMapper.toEntity(incomingDTO);
+            updatedInstructor.setId(instructorId);
+            instructorService.updateInstructor(updatedInstructor);
+
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 
 

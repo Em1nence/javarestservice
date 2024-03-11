@@ -1,14 +1,27 @@
 package servlet.dto;
 
-public class InstructorIncomingDTO {
+import java.util.List;
+
+public class StudentDTO {
     private int id;
     private String name;
     private String email;
+    private List<CourseDTO> courses;
 
-    public int getId(){
+
+    public List<CourseDTO> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<CourseDTO> courses) {
+        this.courses = courses;
+    }
+    // геттеры и сеттеры
+    public int getId() {
         return id;
     }
-    public void setId(int id){
+
+    public void setId(int id) {
         this.id = id;
     }
 

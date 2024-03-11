@@ -6,6 +6,7 @@ import org.junit.jupiter.api.*;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import repository.impl.CourseRepository;
 import repository.impl.StudentRepository;
 
 import java.io.IOException;
@@ -18,21 +19,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 public class StudentRepositoryTest {
-
-    @Container
-    private static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:latest");
-
     private static ConnectionManager connectionManager;
     private StudentRepository studentRepository;
+    @Container
+    private static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:latest")
+            .withDatabaseName("testDb")
+            .withUsername("test-user")
+            .withPassword("123")
+            .withInitScript("create_tables.sql");
 
     @BeforeAll
     public static void setUp() {
         mySQLContainer.start();
-        connectionManager = new ConnectionManager(
-                mySQLContainer.getJdbcUrl(),
-                mySQLContainer.getUsername(),
-                mySQLContainer.getPassword()
-        );
     }
 
     @AfterAll
@@ -42,6 +40,12 @@ public class StudentRepositoryTest {
 
     @BeforeEach
     public void setUpEach() {
+        connectionManager = new ConnectionManager();
+        connectionManager.setCredentials(
+                mySQLContainer.getJdbcUrl(),
+                mySQLContainer.getUsername(),
+                mySQLContainer.getPassword()
+        );
         studentRepository = new StudentRepository(connectionManager);
     }
 
@@ -110,8 +114,6 @@ public class StudentRepositoryTest {
         try (Connection connection = connectionManager.getConnection();
              Statement statement = connection.createStatement()) {
             statement.executeUpdate("DELETE FROM " + tableName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

@@ -21,7 +21,7 @@ public class InstructorRepository {
     private Connection getConnection() {
         try {
             return connectionManager.getConnection();
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Failed to get a database connection", e);
         }
     }

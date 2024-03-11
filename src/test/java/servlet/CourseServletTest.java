@@ -1,196 +1,191 @@
-
-
-package servlet;
 /*
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.RequestDispatcher;
+package servlet;
+
+import model.Instructor;
+import model.Student;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Course;
-import model.Instructor;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import service.CourseServiceImpl;
-import servlet.dto.CourseIncomingDTO;
-import servlet.dto.CourseOutgoingDTO;
+import servlet.dto.CourseDTO;
+import servlet.dto.StudentDTO;
 import servlet.mapper.CourseMapper;
+import servlet.mapper.InstructorMapper;
 
 import java.io.*;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class CourseServletTest {
-
+class CourseServletTest {
     @Mock
     private CourseServiceImpl courseService;
-
+    @Mock
+    private CourseMapper courseMapper;
     @Mock
     private HttpServletRequest request;
-
     @Mock
     private HttpServletResponse response;
-
-    @Mock
-    private RequestDispatcher requestDispatcher;
-
-    @InjectMocks
     private CourseServlet courseServlet;
-
-    private CourseMapper courseMapper;
+    @Mock
+    private InstructorMapper instructorMapper;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        courseServlet = new CourseServlet(courseService);
-        courseMapper = new CourseMapper();
+        courseServlet = new CourseServlet(courseMapper);
     }
 
     @Test
-    void testDoGetWithAllCourses() throws ServletException, IOException {
-        // Arrange
-        doReturn(Arrays.asList(
-                new Course(1, "Course1", "Description1", new Instructor(1, "Instructor1")),
-                new Course(2, "Course2", "Description2", new Instructor(2, "Instructor2"))
-        )).when(courseService).getAllCourses();
+    void testDoGetAllCourses() throws IOException {
+        // Создаем инструкторов
+        Instructor instructor1 = new Instructor(1, "John Doe", "john@example.com");
+        Instructor instructor2 = new Instructor(2, "Jane Smith", "jane@example.com");
+
+        // Создаем студентов (если они нужны)
+        List<StudentDTO> studentDtos = new ArrayList<>();
+        List<Student> students = new ArrayList<>();
+        // Добавляем студентов в список, если это необходимо
+
+        // Создаем курсы
+        List<Course> courses = new ArrayList<>();
+        courses.add(new Course(1, "Math", "Mathematics course", instructor1, students));
+        courses.add(new Course(2, "Physics", "Physics course", instructor2, students));
+
+        // Моки для сервиса курсов
+        when(courseService.getAllCourses()).thenReturn(courses);
+
+        // Моки для маппера курсов
+        when(courseMapper.toDto(any(Course.class))).thenAnswer(invocation -> {
+            Course course = invocation.getArgument(0);
+            return new CourseDTO(course.getId(), course.getTitle(), course.getDescription(), instructorMapper.toDto(course.getInstructor()), studentDtos);
+        });
 
         StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
+        when(response.getWriter()).thenReturn(new java.io.PrintWriter(stringWriter));
 
-        // Act
         courseServlet.doGet(request, response);
 
-        // Assert
+        // Ожидаемый ответ
+        String expectedResponse = "[{\"id\":1,\"title\":\"Math\",\"description\":\"Mathematics course\",\"instructorId\":1,\"students\":[]}" +
+                ",{\"id\":2,\"title\":\"Physics\",\"description\":\"Physics course\",\"instructorId\":2,\"students\":[]}]";
+        assertEquals(expectedResponse, stringWriter.toString().trim());
+    }
+
+
+    @Test
+    void testDoGetSpecificCourse() throws ServletException, IOException {
+
+        Instructor instructor1 = new Instructor(1, "John Doe", "john@example.com");
+        Instructor instructor2 = new Instructor(2, "Jane Smith", "jane@example.com");
+        // Создаем курс и его DTO
+        Course course = new Course(1, "Math", "Mathematics course", instructor1, new ArrayList<>());
+        CourseDTO courseDTO = new CourseDTO(1, "Math", "Mathematics course", instructorMapper.toDto(instructor1), new ArrayList<>());
+
+        // Устанавливаем путь запроса
+        when(request.getPathInfo()).thenReturn("/1");
+
+        // Моки для сервиса курсов
+        when(courseService.getCourseById(1)).thenReturn(course);
+
+        // Моки для маппера курсов
+        when(courseMapper.toDto(course)).thenReturn(courseDTO);
+
+        StringWriter stringWriter = new StringWriter();
+        when(response.getWriter()).thenReturn(new java.io.PrintWriter(stringWriter));
+
+        // Вызываем метод doGet
+        courseServlet.doGet(request, response);
+
+        // Проверяем, что установлены правильные заголовки ответа
         verify(response).setContentType("application/json");
         verify(response).setCharacterEncoding("UTF-8");
 
-        String expectedJson = "[{\"id\":1,\"title\":\"Course1\",\"description\":\"Description1\",\"instructorId\":1}," +
-                "{\"id\":2,\"title\":\"Course2\",\"description\":\"Description2\",\"instructorId\":2}]";
-
-        writer.flush();
-        verify(response.getWriter()).write(expectedJson);
+        // Ожидаемый ответ
+        String expectedResponse = "{\"id\":1,\"title\":\"Math\",\"description\":\"Mathematics course\",\"instructorId\":1,\"students\":[]}";
+        // Проверяем, что ответ сервера соответствует ожидаемому ответу
+        verify(response.getWriter()).write(expectedResponse);
     }
 
     @Test
-    void testDoGetWithSpecificCourse() throws ServletException, IOException {
-        // Arrange
-        int courseId = 1;
-        when(request.getPathInfo()).thenReturn("/" + courseId);
-        when(courseService.getCourseById(courseId)).thenReturn(
-                new Course(courseId, "Course1", "Description1", new Instructor(1, "Instructor1"))
-        );
+    void testDoPost() throws IOException {
+        String json = "{\"id\":1,\"name\":\"Math\"}";
+        BufferedReader reader = new BufferedReader(new StringReader(json));
+        when(request.getReader()).thenReturn(reader);
 
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
+        CourseDTO courseDTO = new CourseDTO(1, "Math");
+        Course course = new Course(1, "Math");
 
-        // Act
-        courseServlet.doGet(request, response);
+        when(courseMapper.toEntity(courseDTO)).thenReturn(course);
 
-        // Assert
-        verify(response).setContentType("application/json");
-        verify(response).setCharacterEncoding("UTF-8");
-
-        String expectedJson = "{\"id\":1,\"title\":\"Course1\",\"description\":\"Description1\",\"instructorId\":1}";
-
-        writer.flush();
-        verify(response.getWriter()).write(expectedJson);
-    }
-
-    @Test
-    void testDoPost() throws ServletException, IOException {
-        // Arrange
-        CourseIncomingDTO incomingDTO = new CourseIncomingDTO();
-        incomingDTO.setTitle("NewCourse");
-        incomingDTO.setDescription("NewDescription");
-        incomingDTO.setInstructorId(1);
-
-        when(new ObjectMapper().readValue(request.getReader(), CourseIncomingDTO.class)).thenReturn(incomingDTO);
-
-        // Act
         courseServlet.doPost(request, response);
 
-        // Assert
-        verify(courseService).addCourse(courseMapper.toEntity(incomingDTO));
+        verify(courseService).addCourse(course);
         verify(response).setStatus(HttpServletResponse.SC_CREATED);
     }
 
     @Test
-    void testDoPutWithValidCourseId() throws ServletException, IOException {
-        // Arrange
-        int courseId = 1;
-        when(request.getPathInfo()).thenReturn("/" + courseId);
+    void testDoPutExistingCourse() throws IOException {
+        String json = "{\"id\":1,\"name\":\"Math\"}";
+        BufferedReader reader = new BufferedReader(new StringReader(json));
+        when(request.getPathInfo()).thenReturn("/1");
+        when(request.getReader()).thenReturn(reader);
 
-        Course existingCourse = new Course(courseId, "ExistingCourse", "ExistingDescription", new Instructor(1, "Instructor1"));
-        when(courseService.getCourseById(courseId)).thenReturn(existingCourse);
+        CourseDTO courseDTO = new CourseDTO(1, "Math");
+        Course course = new Course(1, "Math");
 
-        CourseIncomingDTO incomingDTO = new CourseIncomingDTO();
-        incomingDTO.setTitle("UpdatedCourse");
-        incomingDTO.setDescription("UpdatedDescription");
-        incomingDTO.setInstructorId(2);
+        when(courseService.getCourseById(1)).thenReturn(course);
+        when(courseMapper.toEntity(courseDTO)).thenReturn(course);
 
-        when(new ObjectMapper().readValue(request.getReader(), CourseIncomingDTO.class)).thenReturn(incomingDTO);
-
-        // Act
         courseServlet.doPut(request, response);
 
-        // Assert
-        verify(courseService).updateCourse(courseMapper.toEntity(incomingDTO));
+        verify(courseService).updateCourse(course);
         verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
     @Test
-    void testDoPutWithInvalidCourseId() throws ServletException, IOException {
-        // Arrange
-        int courseId = 1;
-        when(request.getPathInfo()).thenReturn("/" + courseId);
-        when(courseService.getCourseById(courseId)).thenReturn(null);
+    void testDoPutNonExistingCourse() throws ServletException, IOException {
+        String json = "{\"id\":1,\"name\":\"Math\"}";
+        BufferedReader reader = new BufferedReader(new StringReader(json));
+        when(request.getPathInfo()).thenReturn("/1");
+        when(request.getReader()).thenReturn(reader);
 
-        // Act
+        when(courseService.getCourseById(1)).thenReturn(null);
+
         courseServlet.doPut(request, response);
 
-        // Assert
         verify(courseService, never()).updateCourse(any());
         verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
 
     @Test
-    void testDoDeleteWithValidCourseId() {
-        // Arrange
-        int courseId = 1;
-        when(request.getPathInfo()).thenReturn("/" + courseId);
+    void testDoDeleteExistingCourse() throws ServletException, IOException {
+        when(request.getPathInfo()).thenReturn("/1");
+        Course course = new Course(1, "Math");
+        when(courseService.getCourseById(1)).thenReturn(course);
 
-        Course existingCourse = new Course(courseId, "ExistingCourse", "ExistingDescription", new Instructor(1, "Instructor1"));
-        when(courseService.getCourseById(courseId)).thenReturn(existingCourse);
-
-        // Act
         courseServlet.doDelete(request, response);
 
-        // Assert
-        verify(courseService).deleteCourse(courseId);
+        verify(courseService).deleteCourse(1);
         verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
     @Test
-    void testDoDeleteWithInvalidCourseId() {
-        // Arrange
-        int courseId = 1;
-        when(request.getPathInfo()).thenReturn("/" + courseId);
-        when(courseService.getCourseById(courseId)).thenReturn(null);
+    void testDoDeleteNonExistingCourse() throws ServletException, IOException {
+        when(request.getPathInfo()).thenReturn("/1");
+        when(courseService.getCourseById(1)).thenReturn(null);
 
-        // Act
         courseServlet.doDelete(request, response);
 
-        // Assert
         verify(courseService, never()).deleteCourse(anyInt());
         verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
-} */
+}*/

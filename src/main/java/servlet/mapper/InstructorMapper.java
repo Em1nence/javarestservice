@@ -1,26 +1,28 @@
 package servlet.mapper;
 
 import model.Instructor;
-import servlet.dto.InstructorIncomingDTO;
-import servlet.dto.InstructorOutgoingDTO;
+import servlet.dto.InstructorDTO;
 
-public class InstructorMapper implements DtoMapper<Instructor, InstructorIncomingDTO, InstructorOutgoingDTO> {
+public class InstructorMapper implements DtoMapper<Instructor, InstructorDTO> {
 
     @Override
-    public Instructor toEntity(InstructorIncomingDTO incomingDTO) {
+    public Instructor toEntity(InstructorDTO dto) {
         Instructor instructor = new Instructor();
-        instructor.setId(incomingDTO.getId());
-        instructor.setName(incomingDTO.getName());
-        instructor.setEmail(incomingDTO.getEmail());
+        instructor.setId(dto.getId());
+        instructor.setName(dto.getName());
+        instructor.setEmail(dto.getEmail());
         return instructor;
     }
 
     @Override
-    public InstructorOutgoingDTO toOutgoingDto(Instructor entity) {
-        InstructorOutgoingDTO outgoingDTO = new InstructorOutgoingDTO();
-        outgoingDTO.setId(entity.getId());
-        outgoingDTO.setName(entity.getName());
-        outgoingDTO.setEmail(entity.getEmail());
-        return outgoingDTO;
+    public InstructorDTO toDto(Instructor entity) {
+        if (entity == null) {
+            return null;
+        }
+        InstructorDTO dto = new InstructorDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setEmail(entity.getEmail());
+        return dto;
     }
 }

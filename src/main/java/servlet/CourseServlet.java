@@ -8,8 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import model.Course;
 import service.CourseService;
 import service.CourseServiceImpl;
-import servlet.dto.CourseIncomingDTO;
-import servlet.dto.CourseOutgoingDTO;
+import servlet.dto.CourseDTO;
 import servlet.mapper.CourseMapper;
 
 import java.io.IOException;
@@ -21,17 +20,22 @@ public class CourseServlet extends HttpServlet {
     private final CourseService courseService;
     private final CourseMapper courseMapper;
 
-    public CourseServlet(CourseServiceImpl courseService, CourseMapper courseMapper) {
+    public CourseServlet(CourseMapper courseMapper, CourseServiceImpl courseService) {
         this.courseService = courseService;
         this.courseMapper = courseMapper;
     }
+    public CourseServlet(CourseMapper courseMapper){
+        this.courseMapper = courseMapper;
+        this.courseService = new CourseServiceImpl();
+    }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
             // Получение всех курсов
-            List<CourseOutgoingDTO> courses = courseService.getAllCourses().stream()
-                    .map(course -> courseMapper.toOutgoingDto(course)) // Используем courseMapper
+            List<CourseDTO> courses = courseService.getAllCourses().stream()
+                    .map(courseMapper::toDto) // Используем courseMapper
                     .collect(Collectors.toList());
 
             // Отправка данных в формате JSON
@@ -41,7 +45,7 @@ public class CourseServlet extends HttpServlet {
         } else {
             // Получение конкретного курса
             int courseId = Integer.parseInt(pathInfo.substring(1)); // Убираем первый символ '/'
-            CourseOutgoingDTO course = courseMapper.toOutgoingDto(courseService.getCourseById(courseId)); // Используем courseMapper
+            CourseDTO course = courseMapper.toDto(courseService.getCourseById(courseId)); // Используем courseMapper
 
             // Отправка данных в формате JSON
             response.setContentType("application/json");
@@ -53,7 +57,7 @@ public class CourseServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // Создание нового курса
-        CourseIncomingDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), CourseIncomingDTO.class);
+        CourseDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), CourseDTO.class);
         Course course = courseMapper.toEntity(incomingDTO); // Используем courseMapper
         courseService.addCourse(course);
 
@@ -67,7 +71,7 @@ public class CourseServlet extends HttpServlet {
         Course existingCourse = courseService.getCourseById(courseId);
 
         if (existingCourse != null) {
-            CourseIncomingDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), CourseIncomingDTO.class);
+            CourseDTO incomingDTO = new ObjectMapper().readValue(request.getReader(), CourseDTO.class);
             Course updatedCourse = courseMapper.toEntity(incomingDTO); // Используем courseMapper
             updatedCourse.setId(courseId);
             courseService.updateCourse(updatedCourse);

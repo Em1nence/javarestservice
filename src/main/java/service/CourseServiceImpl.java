@@ -1,5 +1,6 @@
 package service;
 
+import db.ConnectionManager;
 import model.Course;
 import repository.impl.CourseRepository;
 
@@ -8,6 +9,9 @@ import java.util.List;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
 
+    public CourseServiceImpl(){
+        this.courseRepository = new CourseRepository(new ConnectionManager());
+    }
     public CourseServiceImpl(CourseRepository courseRepository) {
         this.courseRepository = courseRepository;
     }

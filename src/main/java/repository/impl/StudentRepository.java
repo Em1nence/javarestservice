@@ -22,14 +22,14 @@ public class StudentRepository {
     private Connection getConnection() {
         try {
             return connectionManager.getConnection();
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Failed to get a database connection", e);
         }
     }
 
     public void addStudent(Student student) {
         try (Connection connection = getConnection()) {
-            String sql = "INSERT INTO Student (name, email) VALUES (?, ?)";
+            String sql = "INSERT INTO student (name, email) VALUES (?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, student.getName());
                 statement.setString(2, student.getEmail());
@@ -52,7 +52,7 @@ public class StudentRepository {
     public Student getStudentById(int id) {
         Student student = null;
         try (Connection connection = getConnection()) {
-            String sql = "SELECT * FROM Student WHERE id = ?";
+            String sql = "SELECT * FROM student WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, id);
 
@@ -72,7 +72,7 @@ public class StudentRepository {
     public List<Student> getAllStudents() {
         List<Student> students = new ArrayList<>();
         try (Connection connection = getConnection()) {
-            String sql = "SELECT * FROM Student";
+            String sql = "SELECT * FROM student";
             try (PreparedStatement statement = connection.prepareStatement(sql);
                  ResultSet resultSet = statement.executeQuery()) {
 
@@ -108,7 +108,7 @@ public class StudentRepository {
     public List<Student> getStudentsByCourseId(int courseId) {
         List<Student> students = new ArrayList<>();
         try (Connection connection = getConnection()) {
-            String sql = "SELECT s.* FROM Student s " +
+            String sql = "SELECT s.* FROM student s " +
                     "JOIN studentcourse cs ON s.id = cs.student_id " +
                     "WHERE cs.course_id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {

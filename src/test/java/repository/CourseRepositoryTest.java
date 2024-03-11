@@ -4,8 +4,11 @@ import db.ConnectionManager;
 import model.Course;
 import model.Instructor;
 import model.Student;
-import org.junit.jupiter.api.*;
-
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -20,25 +23,22 @@ import java.sql.Statement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 @Testcontainers
 public class CourseRepositoryTest {
+    private ConnectionManager connectionManager;
+    private CourseRepository courseRepository;
 
     @Container
-    private static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:latest");
-
-    private static ConnectionManager connectionManager;
-    private CourseRepository courseRepository;
+    private static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:latest")
+            .withDatabaseName("testDb")
+            .withUsername("test-user")
+            .withPassword("123")
+            .withInitScript("create_tables.sql");
 
     @BeforeAll
     public static void setUp() {
         mySQLContainer.start();
-        connectionManager = new ConnectionManager(
-                mySQLContainer.getJdbcUrl(),
-                mySQLContainer.getUsername(),
-                mySQLContainer.getPassword()
-        );
     }
 
     @AfterAll
@@ -48,6 +48,12 @@ public class CourseRepositoryTest {
 
     @BeforeEach
     public void setUpEach() {
+        connectionManager = new ConnectionManager();
+        connectionManager.setCredentials(
+                mySQLContainer.getJdbcUrl(),
+                mySQLContainer.getUsername(),
+                mySQLContainer.getPassword()
+        );
         courseRepository = new CourseRepository(connectionManager);
     }
 
@@ -80,8 +86,8 @@ public class CourseRepositoryTest {
     @Test
     public void testGetAll() {
         try {
-            clearTable("instructor");
-            clearTable("course");
+            clearTable("Instructor");
+            clearTable("Course");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -236,13 +242,11 @@ public class CourseRepositoryTest {
         try (Connection connection = connectionManager.getConnection();
              Statement statement = connection.createStatement()) {
             // Удалить записи в связанных таблицах перед очисткой
-            if ("instructor".equals(tableName)) {
-                statement.executeUpdate("DELETE FROM course");
+            if ("Instructor".equals(tableName)) {
+                statement.executeUpdate("DELETE FROM Course");
             }
             // Очистить указанную таблицу
             statement.executeUpdate("DELETE FROM " + tableName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

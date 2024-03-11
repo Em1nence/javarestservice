@@ -3,56 +3,63 @@ package servlet.mapper;
 import model.Course;
 import model.Instructor;
 import model.Student;
-import servlet.dto.CourseIncomingDTO;
-import servlet.dto.CourseOutgoingDTO;
-import servlet.dto.StudentOutgoingDTO;
+import servlet.dto.CourseDTO;
+import servlet.dto.StudentDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CourseMapper implements DtoMapper<Course, CourseIncomingDTO, CourseOutgoingDTO> {
+public class CourseMapper implements DtoMapper<Course, CourseDTO> {
 
     private final StudentMapper studentMapper;
+    private final InstructorMapper instructorMapper;
 
-    public CourseMapper(StudentMapper studentMapper) {
+    public CourseMapper(StudentMapper studentMapper, InstructorMapper instructorMapper) {
         this.studentMapper = studentMapper;
+        this.instructorMapper = instructorMapper;
     }
 
     @Override
-    public Course toEntity(CourseIncomingDTO incomingDTO) {
-        Course course = new Course();
-        course.setId(incomingDTO.getId());
-        course.setTitle(incomingDTO.getTitle());
-        course.setDescription(incomingDTO.getDescription());
-
-        // Установка инструктора (если instructorId не равен 0)
-        if (incomingDTO.getInstructorId() != 0) {
-            Instructor instructor = new Instructor();
-            instructor.setId(incomingDTO.getInstructorId());
-            course.setInstructor(instructor);
+    public Course toEntity(CourseDTO dto) {
+        if (dto == null) {
+            return null;
         }
-        return course;
-    }
-
-    @Override
-    public CourseOutgoingDTO toOutgoingDto(Course entity) {
-        if (entity == null) {
-            return null; // или выбрасывайте исключение или устанавливайте значения по умолчанию
-        }
-        CourseOutgoingDTO outgoingDTO = new CourseOutgoingDTO();
-        outgoingDTO.setId(entity.getId());
-        outgoingDTO.setTitle(entity.getTitle());
-        outgoingDTO.setDescription(entity.getDescription());
-        if (entity.getInstructor() != null) {
-            outgoingDTO.setInstructorId(entity.getInstructor().getId());
+        Course entity = new Course();
+        entity.setId(dto.getId());
+        entity.setTitle(dto.getTitle());
+        entity.setDescription(dto.getDescription());
+        if (dto.getInstructor() != null) {
+            entity.setInstructor(instructorMapper.toEntity(dto.getInstructor()));
         }
 
         // Пример маппинга коллекции students
-        List<StudentOutgoingDTO> studentDTOs = entity.getStudents().stream()
-                .map(studentMapper::toOutgoingDto)
+        List<Student> students = dto.getStudents().stream()
+                .map(studentMapper::toEntity)
                 .collect(Collectors.toList());
-        outgoingDTO.setStudents(studentDTOs);
+        entity.setStudents(students);
 
-        return outgoingDTO;
+        return entity;
+    }
+
+    @Override
+    public CourseDTO toDto(Course entity) {
+        if (entity == null) {
+            return null; // или выбрасывайте исключение или устанавливайте значения по умолчанию
+        }
+        CourseDTO dto = new CourseDTO();
+        dto.setId(entity.getId());
+        dto.setTitle(entity.getTitle());
+        dto.setDescription(entity.getDescription());
+        if (entity.getInstructor() != null) {
+            dto.setInstructor(instructorMapper.toDto(entity.getInstructor()));
+        }
+
+        // Пример маппинга коллекции students
+        List<StudentDTO> studentDTOs = entity.getStudents().stream()
+                .map(studentMapper::toDto)
+                .collect(Collectors.toList());
+        dto.setStudents(studentDTOs);
+
+        return dto;
     }
 }

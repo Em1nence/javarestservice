@@ -1,5 +1,6 @@
 package service;
 
+import db.ConnectionManager;
 import model.Student;
 import repository.impl.StudentRepository;
 
@@ -7,7 +8,9 @@ import java.util.List;
 
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
-
+    public StudentServiceImpl(){
+        this.studentRepository = new StudentRepository(new ConnectionManager());
+    }
     public StudentServiceImpl(StudentRepository studentRepository) {
         this.studentRepository = studentRepository;
     }
@@ -16,12 +19,10 @@ public class StudentServiceImpl implements StudentService {
     public Student getStudentById(int id) {
         return studentRepository.getStudentById(id);
     }
-
     @Override
     public List<Student> getAllStudents() {
         return studentRepository.getAllStudents();
     }
-
     @Override
     public void addStudent(Student student) {
         studentRepository.addStudent(student);

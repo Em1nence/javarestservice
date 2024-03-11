@@ -7,6 +7,7 @@ import org.junit.jupiter.api.*;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import repository.impl.CourseRepository;
 import repository.impl.InstructorRepository;
 
 import java.io.IOException;
@@ -21,21 +22,19 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 public class InstructorRepositoryTest {
 
-    @Container
-    private static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:latest");
-
-
     private static ConnectionManager connectionManager;
     private InstructorRepository instructorRepository;
+
+    @Container
+    private static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:latest")
+            .withDatabaseName("testDb")
+            .withUsername("test-user")
+            .withPassword("123")
+            .withInitScript("create_tables.sql");
 
     @BeforeAll
     public static void setUp() {
         mySQLContainer.start();
-        connectionManager = new ConnectionManager(
-                mySQLContainer.getJdbcUrl(),
-                mySQLContainer.getUsername(),
-                mySQLContainer.getPassword()
-        );
     }
 
     @AfterAll
@@ -45,8 +44,15 @@ public class InstructorRepositoryTest {
 
     @BeforeEach
     public void setUpEach() {
+        connectionManager = new ConnectionManager();
+        connectionManager.setCredentials(
+                mySQLContainer.getJdbcUrl(),
+                mySQLContainer.getUsername(),
+                mySQLContainer.getPassword()
+        );
         instructorRepository = new InstructorRepository(connectionManager);
     }
+
 
     @Test
     public void testAddAndGetById() {
@@ -66,7 +72,7 @@ public class InstructorRepositoryTest {
     @Test
     public void testGetAll() {
         try {
-            clearTable("instructor");
+            clearTable("Instructor");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -126,12 +132,10 @@ public class InstructorRepositoryTest {
     public void clearTable(String tableName) throws SQLException {
         try (Connection connection = connectionManager.getConnection();
              Statement statement = connection.createStatement()) {
-            if ("instructor".equals(tableName)) {
-                statement.executeUpdate("DELETE FROM course");
+            if ("Instructor".equals(tableName)) {
+                statement.executeUpdate("DELETE FROM Course");
             }
             statement.executeUpdate("DELETE FROM " + tableName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

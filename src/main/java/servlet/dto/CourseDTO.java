@@ -1,26 +1,21 @@
-package model;
-
-import java.util.ArrayList;
+package servlet.dto;
 import java.util.List;
 
-public class Course {
-
-    public Course(int id, String title) {
+public class CourseDTO {
+    public CourseDTO(int id, String title) {
         this.id = id;
         this.title = title;
     }
     private int id;
     private String title;
     private String description;
-    private Instructor instructor;
+    private InstructorDTO instructor;
+    private List<StudentDTO> students;
 
-    private List<Student> students;
-
-    public Course() {
-        this.students = new ArrayList<>();
+    public CourseDTO() {
     }
 
-    public Course(int id, String title, String description, Instructor instructor, List<Student> students) {
+    public CourseDTO(int id, String title, String description, InstructorDTO instructor, List<StudentDTO> students) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -28,13 +23,7 @@ public class Course {
         this.students = students;
     }
 
-    public List<Student> getStudents() {
-        return students;
-    }
-
-    public void setStudents(List<Student> students) {
-        this.students = students;
-    }
+    // геттеры и сеттеры
     public int getId() {
         return id;
     }
@@ -59,13 +48,19 @@ public class Course {
         this.description = description;
     }
 
-    public Instructor getInstructor() {
+    public InstructorDTO getInstructor() {
         return instructor;
     }
 
-    public void setInstructor(Instructor instructor) {
+    public void setInstructor(InstructorDTO instructor) {
         this.instructor = instructor;
     }
 
+    public List<StudentDTO> getStudents() {
+        return students;
+    }
 
+    public void setStudents(List<StudentDTO> students) {
+        this.students = students;
+    }
 }

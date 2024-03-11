@@ -1,5 +1,6 @@
 package service;
 
+import model.Instructor;
 import model.Student;
 
 import java.util.List;
